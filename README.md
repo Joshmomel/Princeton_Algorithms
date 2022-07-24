@@ -1,7 +1,6 @@
-# Princeton_Algorithms
-Princeton Algorithms I
+## Princeton Algorithms I
 
 
-## Percolation 100% pass
-https://github.com/Joshmomel/Princeton_Algorithms/tree/percolation
+
+1. [Percolation](https://github.com/Joshmomel/Princeton_Algorithms/tree/percolation) - 100% pass
 

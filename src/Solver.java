@@ -3,12 +3,9 @@ import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Objects;
 
 public class Solver {
-
   private final Stack<Board> paths = new Stack<>();
   private boolean isSolved = false;
 
@@ -17,38 +14,23 @@ public class Solver {
     private final Board board;
     private final GameNode parent;
     private final int moves;
-
+    private final int priority;
 
     public GameNode(Board board, int moves, GameNode parent) {
       this.board = board;
       this.moves = moves;
       this.parent = parent;
-    }
-
-    public Board getBoard() {
-      return board;
-    }
-
-    public int getMoves() {
-      return moves;
+      this.priority = board.manhattan() + moves;
     }
 
     public int getPriority() {
-      return this.board.manhattan() + this.moves;
-    }
-
-    public GameNode getParent() {
-      return parent;
+      return priority;
     }
   }
 
   private void getPath(GameNode node) {
     this.paths.push(node.board);
-    while (node.getParent() != null) {
-//      System.out.println("priority " + node.getPriority());
-//      System.out.println("moves " + node.getMoves());
-//      System.out.println("manhattan " + node.getBoard().manhattan());
-//      System.out.println();
+    while (node.parent != null) {
       node = node.parent;
       this.paths.push(node.board);
     }
@@ -56,43 +38,40 @@ public class Solver {
 
   // find a solution to the initial board (using the A* algorithm)
   public Solver(Board initial) {
+    if (initial == null) {
+      throw new IllegalArgumentException();
+    }
+
     MinPQ<GameNode> minPQ = new MinPQ<>(Comparator.comparingInt(GameNode::getPriority));
     minPQ.insert(new GameNode(initial, 0, null));
 
-    ArrayList<Board> previousBoards = new ArrayList<>();
+    MinPQ<GameNode> twinMinPQ = new MinPQ<>(Comparator.comparingInt(GameNode::getPriority));
+    twinMinPQ.insert(new GameNode(initial.twin(), 0, null));
 
-    int step = 0;
-    while (!minPQ.isEmpty()) {
-      var current = minPQ.min();
-      if (current.getBoard().isGoal()) {
+
+    while (!minPQ.isEmpty() || !minPQ.isEmpty()) {
+      var current = minPQ.delMin();
+      var currentTwin = twinMinPQ.delMin();
+      if (current.board.isGoal()) {
         this.isSolved = true;
         this.getPath(current);
         return;
       }
+      if (currentTwin.board.isGoal()) {
+        this.isSolved = false;
+        return;
+      }
 
-      minPQ.delMin();
-      previousBoards.add(current.getBoard());
-
-//      System.out.println("queue is " + minPQ.size());
-//      System.out.println("start step " + step);
-//      if (step == 100) {
-//        System.out.println();
-//      }
-//      System.out.println("neighbor is " + current.getBoard().toString());
-//      System.out.println("movie is " + current.getMoves() + " manhattan is " + current.getBoard().manhattan() + " priority is " + (current.getMoves() + current.getBoard().manhattan()));
-//      System.out.println();
-//      System.out.println();
-
-      for (Board neighbor : current.getBoard().neighbors()) {
-        step += 1;
-
-        if (previousBoards.contains(neighbor)) {
-          continue;
+      for (Board neighbor : current.board.neighbors()) {
+        if (current.parent == null || !current.parent.board.equals(neighbor)) {
+          minPQ.insert(new GameNode(neighbor, current.moves + 1, current));
         }
+      }
 
-
-        GameNode node = new GameNode(neighbor, current.getMoves() + 1, current);
-        minPQ.insert(node);
+      for (Board neighbor : currentTwin.board.neighbors()) {
+        if (currentTwin.parent == null || !currentTwin.parent.board.equals(neighbor)) {
+          twinMinPQ.insert(new GameNode(neighbor, currentTwin.moves + 1, currentTwin));
+        }
       }
     }
   }
@@ -104,11 +83,18 @@ public class Solver {
 
   // min number of moves to solve initial board; -1 if unsolvable
   public int moves() {
+    if (!this.isSolved) {
+      return -1;
+    }
+
     return this.paths.size() - 1;
   }
 
   // sequence of boards in a shortest solution; null if unsolvable
   public Iterable<Board> solution() {
+    if (!this.isSolved) {
+      return null;
+    }
     return this.paths;
   }
 

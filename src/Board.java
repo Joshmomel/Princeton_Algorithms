@@ -223,9 +223,9 @@ public class Board {
     System.out.println("harming is " + initial.hamming());
     System.out.println("Manhattan is " + initial.manhattan);
     Iterable<Board> neighbors = initial.neighbors();
-//    for (Board neighbor : neighbors) {
-//      System.out.println(neighbor.toString());
-//    }
+    for (Board neighbor : neighbors) {
+      System.out.println(neighbor.toString());
+    }
 
     Board twin = initial.twin();
     System.out.println(twin.toString());

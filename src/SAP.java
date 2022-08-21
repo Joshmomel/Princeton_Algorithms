@@ -1,15 +1,16 @@
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.BreadthFirstDirectedPaths;
+import edu.princeton.cs.algs4.Digraph;
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdOut;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class SAP {
 
-  Digraph G;
+  private final Digraph G;
 
-  HashMap<VwPair, VwData> db = new HashMap<>();
-  HashMap<VwIterablePair, VwData> dbIterable = new HashMap<>();
+  private final HashMap<VwPair, VwData> db = new HashMap<>();
+  private final HashMap<VwIterablePair, VwData> dbIterable = new HashMap<>();
 
   private static class VwPair {
     int v;
@@ -67,7 +68,14 @@ public class SAP {
 
     @Override
     public int hashCode() {
-      return iterableV.hashCode() + iterableW.hashCode();
+      int hashNumber = 0;
+      for (Integer i : iterableV) {
+        hashNumber += i.hashCode();
+      }
+      for (Integer i : iterableW) {
+        hashNumber += i.hashCode();
+      }
+      return hashNumber;
     }
   }
 
@@ -83,7 +91,10 @@ public class SAP {
 
   // constructor takes a digraph (not necessarily a DAG)
   public SAP(Digraph G) {
-    this.G = G;
+    if (G == null) {
+      throw new IllegalArgumentException();
+    }
+    this.G = new Digraph(G);
   }
 
 
@@ -130,9 +141,17 @@ public class SAP {
     db.put(vwPair, vwData);
   }
 
+  private void validateVertices(int v) {
+    if (v < 0 || v >= G.V()) {
+      throw new IllegalArgumentException();
+    }
+  }
 
   // length of shortest ancestral path between v and w; -1 if no such path
   public int length(int v, int w) {
+    validateVertices(v);
+    validateVertices(w);
+
     VwData vwData = getSAP(v, w);
 
     return vwData.length;
@@ -140,9 +159,32 @@ public class SAP {
 
   // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
   public int ancestor(int v, int w) {
+    validateVertices(v);
+    validateVertices(w);
+
     VwData vwData = getSAP(v, w);
 
     return vwData.ancestor;
+  }
+
+
+  private int validateVertices(Iterable<Integer> vertices) {
+    if (vertices == null) {
+      throw new IllegalArgumentException();
+    }
+    int count = 0;
+    for (Integer v : vertices) {
+      count += 1;
+      if (v == null) {
+        throw new IllegalArgumentException();
+      }
+      validateVertices(v);
+    }
+    if (count == 0) {
+      System.out.println("vertices is " + vertices);
+      return -1;
+    }
+    return 1;
   }
 
   private VwData getSAP(Iterable<Integer> v, Iterable<Integer> w) {
@@ -154,7 +196,18 @@ public class SAP {
     return dbIterable.get(vwPair);
   }
 
+
   private void setSAP(Iterable<Integer> v, Iterable<Integer> w) {
+    int v1 = validateVertices(v);
+    int v2 = validateVertices(w);
+
+    if (v1 < 0 || v2 < 0) {
+      VwData vwData = new VwData(-1, -1);
+      VwIterablePair vwPair = new VwIterablePair(v, w);
+      dbIterable.put(vwPair, vwData);
+      return;
+    }
+
     BreadthFirstDirectedPaths bfsFromV = new BreadthFirstDirectedPaths(G, v);
     BreadthFirstDirectedPaths bfsFromW = new BreadthFirstDirectedPaths(G, w);
 
@@ -167,13 +220,17 @@ public class SAP {
 
   // length of shortest ancestral path between any vertex in v and any vertex in w; -1 if no such path
   public int length(Iterable<Integer> v, Iterable<Integer> w) {
-    VwData vwData = getSAP(v, w);
+    validateVertices(v);
+    validateVertices(w);
 
+    VwData vwData = getSAP(v, w);
     return vwData.length;
   }
 
   // a common ancestor that participates in shortest ancestral path; -1 if no such path
   public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
+    validateVertices(v);
+    validateVertices(w);
     VwData vwData = getSAP(v, w);
 
     return vwData.ancestor;

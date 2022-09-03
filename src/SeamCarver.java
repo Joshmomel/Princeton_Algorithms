@@ -6,9 +6,18 @@ import java.util.ArrayList;
 
 public class SeamCarver {
 
-  private final Picture picture;
-  private final double[][] energy;
-  private final int size;
+  private Picture picture;
+  private double[][] energy;
+
+  private double[][] transposeEnergy;
+  private int size;
+
+  private int width;
+
+  private int height;
+
+  private boolean hasSetEnergy = false;
+  private boolean isInTranspose = false;
 
   private class Point {
     int number;
@@ -26,8 +35,15 @@ public class SeamCarver {
   // create a seam carver object based on the given picture
   public SeamCarver(Picture picture) {
     this.picture = new Picture(picture);
-    this.energy = new double[picture.width()][picture.height()];
-    this.size = picture.width() * picture.height();
+    this.width = picture.width();
+    this.height = picture.height();
+    update();
+  }
+
+  private void update() {
+    this.energy = new double[this.width][this.height];
+    this.transposeEnergy = new double[this.height][this.width];
+    this.size = this.width * this.height;
   }
 
   // current picture
@@ -37,12 +53,14 @@ public class SeamCarver {
 
   // width of current picture
   public int width() {
-    return this.picture.width();
+    if (isInTranspose) return this.height;
+    return this.width;
   }
 
   // height of current picture
   public int height() {
-    return this.picture.height();
+    if (isInTranspose) return this.width;
+    return this.height;
   }
 
   private void validateRowIndex(int row) {
@@ -60,6 +78,12 @@ public class SeamCarver {
   }
 
   private int getDxSquare(int x, int y) {
+    if (isInTranspose) {
+      int temp = x;
+      x = y;
+      y = temp;
+    }
+
     Color leftColor = this.picture.get(x - 1, y);
     Color rightColor = this.picture.get(x + 1, y);
 
@@ -71,6 +95,11 @@ public class SeamCarver {
   }
 
   private int getDySquare(int x, int y) {
+    if (isInTranspose) {
+      int temp = x;
+      x = y;
+      y = temp;
+    }
     Color upColor = this.picture.get(x, y - 1);
     Color downColor = this.picture.get(x, y + 1);
 
@@ -87,7 +116,13 @@ public class SeamCarver {
     validateColumnIndex(x);
     validateRowIndex(y);
 
-    double energy = this.energy[x][y];
+    double energy;
+    if (isInTranspose) {
+      energy = this.transposeEnergy[x][y];
+    } else {
+      energy = this.energy[x][y];
+    }
+
     if (energy != 0.0d) {
       return energy;
     }
@@ -105,11 +140,14 @@ public class SeamCarver {
   }
 
   private void setEnergy() {
-    for (int i = 0; i < this.width(); i++) {
-      for (int j = 0; j < this.height(); j++) {
-        energy(i, j);
+    for (int y = 0; y < this.height; y++) {
+      for (int x = 0; x < this.width; x++) {
+        energy(x, y);
+        transposeEnergy[y][x] = energy[x][y];
       }
     }
+
+    this.hasSetEnergy = true;
   }
 
   private int toX(int number) {
@@ -142,14 +180,34 @@ public class SeamCarver {
 
   // sequence of indices for horizontal seam
   public int[] findHorizontalSeam() {
+    if (!this.hasSetEnergy) {
+      setEnergy();
+    }
+
+    int w = this.picture.width();
+    int h = this.picture.height();
+
+    double[][] tempEnergy = new double[w][h];
+    for (int i = 0; i < w; i++) {
+      System.arraycopy(this.energy[i], 0, tempEnergy[i], 0, h);
+    }
+
+    this.isInTranspose = true;
+
+    this.energy = this.transposeEnergy;
     int[] horizontalSeam = findVerticalSeam();
+
+    this.energy = tempEnergy;
+    this.isInTranspose = false;
 
     return horizontalSeam;
   }
 
   // sequence of indices for vertical seam
   public int[] findVerticalSeam() {
-    setEnergy();
+    if (!this.hasSetEnergy) {
+      setEnergy();
+    }
 
     int[] edgeTo = new int[this.size + 1];
     double[] distTo = new double[this.size + 1];
@@ -198,10 +256,36 @@ public class SeamCarver {
 
   // remove horizontal seam from current picture
   public void removeHorizontalSeam(int[] seam) {
+    this.isInTranspose = true;
+    removeVerticalSeam(seam);
   }
 
   // remove vertical seam from current picture
   public void removeVerticalSeam(int[] seam) {
+    Picture newPicture = new Picture(this.width() - 1, this.height());
+//    System.out.println("this width " + this.width());
+//    System.out.println("this height " + this.height());
+    for (int y = 0; y < this.height(); y++) {
+      for (int x = 0; x < this.width(); x++) {
+//        System.out.println("get x " + x + " and y " + y);
+        Color color;
+        if (isInTranspose) {
+          color = this.picture.get(y, x);
+        } else {
+          color = this.picture.get(x, y);
+        }
+        if (x < seam[y]) {
+          newPicture.set(x, y, color);
+        }
+        if (x > seam[y]) {
+          newPicture.set(x - 1, y, color);
+        }
+      }
+    }
+    this.picture = newPicture;
+    this.width -= 1;
+    update();
+    this.hasSetEnergy = false;
   }
 
   //  unit testing (optional)

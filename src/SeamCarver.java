@@ -17,6 +17,7 @@ public class SeamCarver {
   private int height;
 
   private boolean hasSetEnergy = false;
+
   private boolean isInTranspose = false;
 
   private class Point {
@@ -80,6 +81,19 @@ public class SeamCarver {
     return x == 0 || x == this.width() - 1 || y == 0 || y == this.height() - 1;
   }
 
+  private int getRed(int rgb) {
+    return (rgb >> 16) & 0xFF;
+  }
+
+  private int getGreen(int rgb) {
+    return (rgb >> 8) & 0xFF;
+  }
+
+  private int getBlue(int rgb) {
+    return (rgb) & 0xFF;
+  }
+
+
   private int getDxSquare(int x, int y) {
     if (isInTranspose) {
       int temp = x;
@@ -87,12 +101,12 @@ public class SeamCarver {
       y = temp;
     }
 
-    Color leftColor = this.picture.get(x - 1, y);
-    Color rightColor = this.picture.get(x + 1, y);
+    int leftColor = this.picture.getRGB(x - 1, y);
+    int rightColor = this.picture.getRGB(x + 1, y);
 
-    int rx = Math.abs(leftColor.getRed() - rightColor.getRed());
-    int gx = Math.abs(leftColor.getGreen() - rightColor.getGreen());
-    int bx = Math.abs(leftColor.getBlue() - rightColor.getBlue());
+    int rx = Math.abs(getRed(leftColor) - getRed(rightColor));
+    int gx = Math.abs(getGreen(leftColor) - getGreen(rightColor));
+    int bx = Math.abs(getBlue(leftColor) - getBlue(rightColor));
 
     return rx * rx + gx * gx + bx * bx;
   }
@@ -103,12 +117,13 @@ public class SeamCarver {
       x = y;
       y = temp;
     }
-    Color upColor = this.picture.get(x, y - 1);
-    Color downColor = this.picture.get(x, y + 1);
 
-    int ry = Math.abs(upColor.getRed() - downColor.getRed());
-    int gy = Math.abs(upColor.getGreen() - downColor.getGreen());
-    int by = Math.abs(upColor.getBlue() - downColor.getBlue());
+    int upColor = this.picture.getRGB(x, y - 1);
+    int downColor = this.picture.getRGB(x, y + 1);
+
+    int ry = Math.abs(getRed(upColor) - getRed(downColor));
+    int gy = Math.abs(getGreen(upColor) - getGreen(downColor));
+    int by = Math.abs(getBlue(upColor) - getBlue(downColor));
 
 
     return ry * ry + gy * gy + by * by;
@@ -267,7 +282,10 @@ public class SeamCarver {
     }
 
     removeVerticalSeam(seam);
+    transformPicture();
+  }
 
+  private void transformPicture() {
     int tw = this.height;
     int th = this.width;
     Picture newPicture = new Picture(tw, th);

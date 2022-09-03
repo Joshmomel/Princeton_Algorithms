@@ -9,7 +9,6 @@ public class SeamCarver {
   private Picture picture;
   private double[][] energy;
 
-  private double[][] transposeEnergy;
   private int size;
 
   private int width;
@@ -46,7 +45,6 @@ public class SeamCarver {
 
   private void update() {
     this.energy = new double[this.width][this.height];
-    this.transposeEnergy = new double[this.height][this.width];
     this.size = this.width * this.height;
   }
 
@@ -134,12 +132,7 @@ public class SeamCarver {
     validateColumnIndex(x);
     validateRowIndex(y);
 
-    double energy;
-    if (isInTranspose) {
-      energy = this.transposeEnergy[x][y];
-    } else {
-      energy = this.energy[x][y];
-    }
+    double energy = this.energy[x][y];
 
     if (energy != 0.0d) {
       return energy;
@@ -161,7 +154,6 @@ public class SeamCarver {
     for (int y = 0; y < this.height; y++) {
       for (int x = 0; x < this.width; x++) {
         energy(x, y);
-        transposeEnergy[y][x] = energy[x][y];
       }
     }
 
@@ -212,7 +204,14 @@ public class SeamCarver {
 
     this.isInTranspose = true;
 
-    this.energy = this.transposeEnergy;
+    double[][] transposeEnergy = new double[h][w];
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        transposeEnergy[y][x] = energy[x][y];
+      }
+    }
+    this.energy = transposeEnergy;
+
     int[] horizontalSeam = findVerticalSeam();
 
     this.energy = tempEnergy;
@@ -352,6 +351,7 @@ public class SeamCarver {
     this.height = newPicture.height();
     update();
     this.hasSetEnergy = false;
+    this.isInTranspose = false;
   }
 
   //  unit testing (optional)

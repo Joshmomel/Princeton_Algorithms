@@ -34,6 +34,9 @@ public class SeamCarver {
 
   // create a seam carver object based on the given picture
   public SeamCarver(Picture picture) {
+    if (picture == null) {
+      throw new IllegalArgumentException();
+    }
     this.picture = new Picture(picture);
     this.width = picture.width();
     this.height = picture.height();
@@ -48,7 +51,7 @@ public class SeamCarver {
 
   // current picture
   public Picture picture() {
-    return this.picture;
+    return new Picture(this.picture);
   }
 
   // width of current picture
@@ -257,17 +260,61 @@ public class SeamCarver {
   // remove horizontal seam from current picture
   public void removeHorizontalSeam(int[] seam) {
     this.isInTranspose = true;
+
+    if (seam == null || !isSeamValid(seam)) {
+      this.isInTranspose = false;
+      throw new IllegalArgumentException();
+    }
+
     removeVerticalSeam(seam);
+
+    int tw = this.height;
+    int th = this.width;
+    Picture newPicture = new Picture(tw, th);
+    for (int y = 0; y < th; y++) {
+      for (int x = 0; x < tw; x++) {
+        Color color = this.picture.get(y, x);
+        newPicture.set(x, y, color);
+      }
+    }
+
+    this.picture = newPicture;
+    this.width = newPicture.width();
+    this.height = newPicture.height();
+    update();
+    this.isInTranspose = false;
+  }
+
+  private boolean isSeamValid(int[] seam) {
+    if (seam.length != this.height()) {
+      return false;
+    }
+    int last = -1;
+    for (int i : seam) {
+      if (i < 0 || i > this.width() - 1) {
+        return false;
+      }
+      if (last != -1) {
+        if (last - 1 != i && last + 1 != i && last != i) {
+          return false;
+        }
+      }
+      last = i;
+    }
+    return true;
   }
 
   // remove vertical seam from current picture
   public void removeVerticalSeam(int[] seam) {
+    if (!isInTranspose) {
+      if (seam == null || !isSeamValid(seam)) {
+        throw new IllegalArgumentException();
+      }
+    }
+
     Picture newPicture = new Picture(this.width() - 1, this.height());
-//    System.out.println("this width " + this.width());
-//    System.out.println("this height " + this.height());
     for (int y = 0; y < this.height(); y++) {
       for (int x = 0; x < this.width(); x++) {
-//        System.out.println("get x " + x + " and y " + y);
         Color color;
         if (isInTranspose) {
           color = this.picture.get(y, x);
@@ -283,7 +330,8 @@ public class SeamCarver {
       }
     }
     this.picture = newPicture;
-    this.width -= 1;
+    this.width = newPicture.width();
+    this.height = newPicture.height();
     update();
     this.hasSetEnergy = false;
   }

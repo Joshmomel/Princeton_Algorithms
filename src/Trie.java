@@ -2,16 +2,20 @@ public class Trie {
   private static final int R = 26;        // extended ASCII
   private Node root;      // root of trie
 
-  private static class Node {
+  public static class Node {
     private String val;
     private final Node[] next = new Node[R];
+
+    public String getVal() {
+      return val;
+    }
   }
 
   private Node get(Node x, String key, int d) {
     if (x == null) return null;
     if (d == key.length()) return x;
     char c = key.charAt(d);
-    return get(x.next[c - 65], key, d + 1);
+    return get(x.next[c - 'A'], key, d + 1);
   }
 
   public String get(String key) {
@@ -32,7 +36,7 @@ public class Trie {
       return x;
     }
     char c = key.charAt(d);
-    x.next[c - 65] = put(x.next[c - 65], key, d + 1);
+    x.next[c - 'A'] = put(x.next[c - 'A'], key, d + 1);
     return x;
   }
 
@@ -42,18 +46,20 @@ public class Trie {
     root = put(root, key, 0);
   }
 
-  private Node hasPrefix(Node x, String prefix, int d) {
-    if (x == null) return null;
-    if (d == prefix.length()) return x;
-    char c = prefix.charAt(d);
-    return hasPrefix(x.next[c - 65], prefix, d + 1);
+  public Node hasPrefix(Node node, String prefix, String next, int d) {
+    String newPrefix = prefix + next;
+    for (int i = d; i < newPrefix.length(); i++) {
+      if (node == null) return null;
+      char c = newPrefix.charAt(i);
+      node = node.next[c - 'A'];
+    }
+
+    return node;
   }
 
-  public boolean hasPrefix(String prefix) {
-    Node x = hasPrefix(root, prefix, 0);
-    return x != null;
+  public Node hasPrefix(String prefix, String next) {
+    return hasPrefix(root, prefix, next, 0);
   }
-
 
 
   public static void main(String[] args) {
@@ -63,8 +69,8 @@ public class Trie {
     System.out.println("value is " + v);
     boolean isInTrie = trie.contains("HELLO");
     System.out.println("isInTrie " + isInTrie);
-    boolean hasKey = trie.hasPrefix("HE");
-    System.out.println("hasPrefix is " + hasKey);
+    Node hasKey = trie.hasPrefix("HE", "L");
+    System.out.println("hasPrefix is " + (hasKey != null));
 
 
   }

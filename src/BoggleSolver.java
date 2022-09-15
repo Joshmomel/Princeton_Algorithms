@@ -34,39 +34,31 @@ public class BoggleSolver {
     }
   }
 
-  private boolean isValidPoint(int row, int col) {
-    if (row < 0) return false;
-    if (row > this.row - 1) return false;
-    if (col < 0) return false;
-    if (col > this.col - 1) return false;
-
-    return true;
-  }
 
   private List<Point> getNeighbour(int row, int col) {
     ArrayList<Point> neighbours = new ArrayList<>();
-    if (isValidPoint(row - 1, col)) {
+    if (row - 1 >= 0) {
       neighbours.add(new Point(row - 1, col));
     }
-    if (isValidPoint(row + 1, col)) {
+    if (row + 1 < this.row) {
       neighbours.add(new Point(row + 1, col));
     }
-    if (isValidPoint(row, col - 1)) {
+    if (col - 1 >= 0) {
       neighbours.add(new Point(row, col - 1));
     }
-    if (isValidPoint(row, col + 1)) {
+    if (col + 1 < this.col) {
       neighbours.add(new Point(row, col + 1));
     }
-    if (isValidPoint(row - 1, col - 1)) {
+    if (row - 1 >= 0 && col - 1 >= 0) {
       neighbours.add(new Point(row - 1, col - 1));
     }
-    if (isValidPoint(row - 1, col + 1)) {
+    if (row - 1 >= 0 && col + 1 < this.col) {
       neighbours.add(new Point(row - 1, col + 1));
     }
-    if (isValidPoint(row + 1, col - 1)) {
+    if (row + 1 < this.row && col - 1 >= 0) {
       neighbours.add(new Point(row + 1, col - 1));
     }
-    if (isValidPoint(row + 1, col + 1)) {
+    if (row + 1 < this.row && col + 1 < this.col) {
       neighbours.add(new Point(row + 1, col + 1));
     }
 
@@ -74,33 +66,30 @@ public class BoggleSolver {
   }
 
 
-  private void dfs(BoggleBoard board, Point point, boolean[][] marked, String string, SET<String> words) {
+  private void dfs(BoggleBoard board, Point point, boolean[][] marked, String string, SET<String> words, Trie.Node stringNode) {
     for (Point neighbour : getNeighbour(point.row, point.col)) {
       if (!marked[neighbour.row][neighbour.col]) {
-        char letter = board.getLetter(neighbour.row, neighbour.col);
         String tempWord;
+        String letter = Character.toString(board.getLetter(neighbour.row, neighbour.col));
 
-        if (letter == 'Q') {
-          tempWord = string + letter + 'U';
-        } else {
-          tempWord = string + letter;
+        if (letter.equals("Q")) {
+          letter = letter + 'U';
         }
-        boolean hasKeys = this.trie.hasPrefix(tempWord);
+        tempWord = string + letter;
 
-        if (hasKeys) {
-          if (this.trie.contains(tempWord) && tempWord.length() > 2) {
+        Trie.Node prefixNode = this.trie.hasPrefix(stringNode, string, letter, string.length());
+
+        if (prefixNode != null) {
+          if (tempWord.length() > 2 && prefixNode.getVal() != null) {
             words.add(tempWord);
           }
 
-          boolean[][] markedCopy = new boolean[this.row][this.col];
-          for (int i = 0; i < marked.length; i++) {
-            System.arraycopy(marked[i], 0, markedCopy[i], 0, marked[0].length);
-          }
-          markedCopy[point.row][point.col] = true;
-          dfs(board, neighbour, markedCopy, tempWord, words);
+          marked[point.row][point.col] = true;
+          dfs(board, neighbour, marked, tempWord, words, prefixNode);
         }
       }
     }
+    marked[point.row][point.col] = false;
 
   }
 
@@ -114,19 +103,14 @@ public class BoggleSolver {
 
     for (int i = 0; i < row; i++) {
       for (int j = 0; j < col; j++) {
-        String string;
-        char letter = board.getLetter(i, j);
-        if (letter == 'Q') {
-          string = letter + "U";
-        } else {
-          string = letter + "";
-        }
+        String letter = Character.toString(board.getLetter(i, j));
+        if (letter.equals("Q")) letter = letter + "U";
 
         boolean[][] marked = new boolean[row][col];
         marked[i][j] = true;
 
-
-        dfs(board, new Point(i, j), marked, string, words);
+        Trie.Node stringNode = this.trie.hasPrefix(letter, "");
+        dfs(board, new Point(i, j), marked, letter, words, stringNode);
       }
     }
 
@@ -137,18 +121,18 @@ public class BoggleSolver {
   // (You can assume the word contains only the uppercase letters A through Z.)
   public int scoreOf(String word) {
     if (word == null) throw new IllegalArgumentException();
-    if (!this.trie.contains(word)) {
+
+    int length = word.length();
+    if (length <= 2 || !this.trie.contains(word)) {
       return 0;
     }
 
-    int length = word.length();
     if (length == 3 || length == 4) return 1;
     if (length == 5) return 2;
     if (length == 6) return 3;
     if (length == 7) return 5;
-    if (length >= 8) return 11;
+    return 11;
 
-    return 0;
   }
 
   public static void main(String[] args) {
@@ -158,7 +142,7 @@ public class BoggleSolver {
     // create the Boggle solver with the given dictionary
     BoggleSolver solver = new BoggleSolver(dictionary);
 
-    BoggleBoard boggleBoard = new BoggleBoard("src/utils/board-antidisestablishmentarianisms.txt");
+    BoggleBoard boggleBoard = new BoggleBoard("src/utils/board-points26539.txt");
     System.out.println(boggleBoard);
 
     System.out.println("solver boggleBoard ");

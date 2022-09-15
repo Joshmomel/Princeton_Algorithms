@@ -67,6 +67,10 @@ public class BoggleSolver {
 
 
   private void dfs(BoggleBoard board, Point point, boolean[][] marked, String string, SET<String> words, Trie.Node stringNode) {
+    if (string.length() > 2 && stringNode.getVal() != null) {
+      words.add(string);
+    }
+
     for (Point neighbour : getNeighbour(point.row, point.col)) {
       if (!marked[neighbour.row][neighbour.col]) {
         String tempWord;
@@ -80,17 +84,12 @@ public class BoggleSolver {
         Trie.Node prefixNode = this.trie.hasPrefix(stringNode, string, letter, string.length());
 
         if (prefixNode != null) {
-          if (tempWord.length() > 2 && prefixNode.getVal() != null) {
-            words.add(tempWord);
-          }
-
           marked[point.row][point.col] = true;
           dfs(board, neighbour, marked, tempWord, words, prefixNode);
+          marked[point.row][point.col] = false;
         }
       }
     }
-    marked[point.row][point.col] = false;
-
   }
 
   // Returns the set of all valid words in the given Boggle board, as an Iterable.

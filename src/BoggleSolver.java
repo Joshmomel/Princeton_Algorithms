@@ -2,26 +2,18 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.SET;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BoggleSolver {
 
   private final Trie trie;
+  private BoggleBoard board;
+  private SET<String> words;
+  private boolean[][] marked;
+  private final int[] drow = {-1, 1, 0, 0, -1, -1, 1, 1};
+  private final int[] dcol = {0, 0, -1, 1, -1, 1, -1, 1};
   private int row;
   private int col;
 
-
-  //Point represent 4 * 4 board
-  private static class Point {
-    int row;
-    int col;
-
-    public Point(int row, int col) {
-      this.row = row;
-      this.col = col;
-    }
-  }
 
   // Initializes the data structure using the given array of strings as the dictionary.
   // (You can assume each word in the dictionary contains only the uppercase letters A through Z.)
@@ -34,47 +26,22 @@ public class BoggleSolver {
     }
   }
 
-
-  private List<Point> getNeighbour(int row, int col) {
-    ArrayList<Point> neighbours = new ArrayList<>();
-    if (row - 1 >= 0) {
-      neighbours.add(new Point(row - 1, col));
-    }
-    if (row + 1 < this.row) {
-      neighbours.add(new Point(row + 1, col));
-    }
-    if (col - 1 >= 0) {
-      neighbours.add(new Point(row, col - 1));
-    }
-    if (col + 1 < this.col) {
-      neighbours.add(new Point(row, col + 1));
-    }
-    if (row - 1 >= 0 && col - 1 >= 0) {
-      neighbours.add(new Point(row - 1, col - 1));
-    }
-    if (row - 1 >= 0 && col + 1 < this.col) {
-      neighbours.add(new Point(row - 1, col + 1));
-    }
-    if (row + 1 < this.row && col - 1 >= 0) {
-      neighbours.add(new Point(row + 1, col - 1));
-    }
-    if (row + 1 < this.row && col + 1 < this.col) {
-      neighbours.add(new Point(row + 1, col + 1));
-    }
-
-    return neighbours;
+  private boolean outOfBound(int row, int col) {
+    return row < 0 || row >= this.row || col < 0 || col >= this.col;
   }
 
 
-  private void dfs(BoggleBoard board, Point point, boolean[][] marked, String string, SET<String> words, Trie.Node stringNode) {
+  private void dfs(int row, int col, String string, Trie.Node stringNode) {
     if (string.length() > 2 && stringNode.getVal() != null) {
       words.add(string);
     }
 
-    for (Point neighbour : getNeighbour(point.row, point.col)) {
-      if (!marked[neighbour.row][neighbour.col]) {
+    for (int i = 0; i < 8; i++) {
+      int neighbourRow = row + drow[i];
+      int neighbourCol = col + dcol[i];
+      if (!outOfBound(neighbourRow, neighbourCol) && !marked[neighbourRow][neighbourCol]) {
         String tempWord;
-        String letter = Character.toString(board.getLetter(neighbour.row, neighbour.col));
+        String letter = Character.toString(board.getLetter(neighbourRow, neighbourCol));
 
         if (letter.equals("Q")) {
           letter = letter + 'U';
@@ -84,9 +51,9 @@ public class BoggleSolver {
         Trie.Node prefixNode = this.trie.hasPrefix(stringNode, string, letter, string.length());
 
         if (prefixNode != null) {
-          marked[point.row][point.col] = true;
-          dfs(board, neighbour, marked, tempWord, words, prefixNode);
-          marked[point.row][point.col] = false;
+          marked[row][col] = true;
+          dfs(neighbourRow, neighbourCol, tempWord, prefixNode);
+          marked[row][col] = false;
         }
       }
     }
@@ -97,19 +64,19 @@ public class BoggleSolver {
 
     this.row = board.rows();
     this.col = board.cols();
+    this.board = board;
 
-    SET<String> words = new SET<>();
+    this.words = new SET<>();
 
     for (int i = 0; i < row; i++) {
       for (int j = 0; j < col; j++) {
         String letter = Character.toString(board.getLetter(i, j));
         if (letter.equals("Q")) letter = letter + "U";
 
-        boolean[][] marked = new boolean[row][col];
-        marked[i][j] = true;
+        this.marked = new boolean[row][col];
 
         Trie.Node stringNode = this.trie.hasPrefix(letter, "");
-        dfs(board, new Point(i, j), marked, letter, words, stringNode);
+        dfs(i, j, letter, stringNode);
       }
     }
 
@@ -153,9 +120,6 @@ public class BoggleSolver {
       score += solver.scoreOf(validWord);
     }
     System.out.println("score is " + score);
-
-    System.out.println("score of EM " + solver.scoreOf("EM"));
-
 
     System.out.println("done");
   }

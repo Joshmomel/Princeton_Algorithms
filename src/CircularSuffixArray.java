@@ -37,6 +37,11 @@ public class CircularSuffixArray {
       return new CircularSuffix(this.s, (first + 1) % this.length);
     }
 
+    public CircularSuffix last() {
+      return new CircularSuffix(this.s, (first - 1 + this.length) % this.length);
+    }
+
+
     @Override
     public int compareTo(CircularSuffix o) {
       CircularSuffix c1 = this;
@@ -59,25 +64,7 @@ public class CircularSuffixArray {
       circularSuffixesList.add(circularSuffix);
     }
 
-//    for (CircularSuffix circularSuffix : circularSuffixesList) {
-//      for (int i = 0; i < s.length(); i++) {
-//        System.out.print(circularSuffix.character() + " ");
-//        circularSuffix = circularSuffix.next();
-//      }
-//      System.out.println();
-//    }
-//    System.out.println();
     circularSuffixesList.sort(CircularSuffix::compareTo);
-
-//    for (CircularSuffix circularSuffix : circularSuffixesList) {
-//      for (int i = 0; i < s.length(); i++) {
-//        System.out.print(circularSuffix.character() + " ");
-//        circularSuffix = circularSuffix.next();
-//      }
-//      System.out.println();
-//    }
-//
-//    System.out.println();
   }
 
   // length of s
@@ -92,14 +79,16 @@ public class CircularSuffixArray {
 
   // unit testing (required)
   public static void main(String[] args) {
-    System.out.println(0 % 6);
+//    System.out.println((-1 + 12) % 12);
 //    System.out.println("ABRACADABRA!".charAt(0));
 //    System.out.println("ABRACADABRA!".charAt(1));
-//    System.out.println("ABRACADABRA!".charAt(5));
+//    System.out.println("ABRACADABRA!".charAt(11));
 
     CircularSuffixArray circularSuffixArray = new CircularSuffixArray("ABRACADABRA!");
 
     for (int i = 0; i < circularSuffixArray.length(); i++) {
+      System.out.print(circularSuffixArray.circularSuffixesList.get(i).last().character() + " ");
+      System.out.print("ABRACADABRA!".charAt((circularSuffixArray.index(i) - 1 + 12) % 12) + " ");
       System.out.println(circularSuffixArray.index(i));
     }
 

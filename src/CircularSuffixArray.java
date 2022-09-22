@@ -9,58 +9,37 @@ public class CircularSuffixArray {
   private static class CircularSuffix implements Comparable<CircularSuffix> {
     private final String s;
     private final int length;
-    private final int first;
-    private int position;
+    private final int position;
 
-    public CircularSuffix(String s, int first) {
+    public CircularSuffix(String s, int position) {
       this.s = s;
       this.length = s.length();
-      this.first = first;
-    }
-
-    public CircularSuffix(String s, int first, int position) {
-      this.s = s;
-      this.length = s.length();
-      this.first = first;
       this.position = position;
     }
 
-    public char character() {
-      return s.charAt(first);
-    }
-
-    public int getPosition() {
-      return position;
-    }
-
-    public CircularSuffix next() {
-      return new CircularSuffix(this.s, (first + 1) % this.length);
-    }
-
-    public CircularSuffix last() {
-      return new CircularSuffix(this.s, (first - 1 + this.length) % this.length);
-    }
-
-
     @Override
     public int compareTo(CircularSuffix o) {
-      CircularSuffix c1 = this;
-      CircularSuffix c2 = o;
 
-      while (c1.character() == c2.character()) {
-        c1 = c1.next();
-        c2 = c2.next();
+      int c1Pointer = this.position;
+      int c2Pointer = o.position;
+
+      while (this.s.charAt(c1Pointer) == o.s.charAt(c2Pointer)) {
+        c1Pointer = (c1Pointer + 1) % this.length;
+        c2Pointer = (c2Pointer + 1) % o.length;
       }
-      return c1.character() - c2.character();
+
+      return this.s.charAt(c1Pointer) - o.s.charAt(c2Pointer);
     }
   }
 
   // circular suffix array of s
   public CircularSuffixArray(String s) {
+    if (s == null) throw new IllegalArgumentException();
+
     this.s = s;
     this.circularSuffixesList = new ArrayList<>();
     for (int i = 0; i < s.length(); i++) {
-      CircularSuffix circularSuffix = new CircularSuffix(s, i, i);
+      CircularSuffix circularSuffix = new CircularSuffix(s, i);
       circularSuffixesList.add(circularSuffix);
     }
 
@@ -74,20 +53,15 @@ public class CircularSuffixArray {
 
   // returns index of ith sorted suffix
   public int index(int i) {
-    return this.circularSuffixesList.get(i).getPosition();
+    if (i < 0 || i > this.length() - 1) throw new IllegalArgumentException();
+    return this.circularSuffixesList.get(i).position;
   }
 
   // unit testing (required)
   public static void main(String[] args) {
-//    System.out.println((-1 + 12) % 12);
-//    System.out.println("ABRACADABRA!".charAt(0));
-//    System.out.println("ABRACADABRA!".charAt(1));
-//    System.out.println("ABRACADABRA!".charAt(11));
-
     CircularSuffixArray circularSuffixArray = new CircularSuffixArray("ABRACADABRA!");
 
     for (int i = 0; i < circularSuffixArray.length(); i++) {
-      System.out.print(circularSuffixArray.circularSuffixesList.get(i).last().character() + " ");
       System.out.print("ABRACADABRA!".charAt((circularSuffixArray.index(i) - 1 + 12) % 12) + " ");
       System.out.println(circularSuffixArray.index(i));
     }

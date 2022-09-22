@@ -55,11 +55,11 @@ public class BurrowsWheeler {
     while (!BinaryStdIn.isEmpty()) {
       s = BinaryStdIn.readString();
     }
-    System.out.println("s is " + s);
+//    System.out.println("s is " + s);
 
 
     String sortedString = sortString(s);
-    System.out.println("sortedString is " + sortedString);
+//    System.out.println("sortedString is " + sortedString);
 
     int N = s.length();
     SET<Character> uniqueChars = new SET<>();
@@ -75,7 +75,7 @@ public class BurrowsWheeler {
       num += 1;
     }
 
-    System.out.println(count);
+//    System.out.println(count);
 
     int[] next = new int[N];
     Arrays.fill(next, -1);
@@ -89,7 +89,7 @@ public class BurrowsWheeler {
       next[position] = i;
     }
 
-    System.out.println(Arrays.toString(next));
+//    System.out.println(Arrays.toString(next));
 
     int p = next[0];
     for (int i = 0; i < N; i++) {

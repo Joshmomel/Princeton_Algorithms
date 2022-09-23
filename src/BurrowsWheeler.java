@@ -20,10 +20,7 @@ public class BurrowsWheeler {
   // apply Burrows-Wheeler transform,
   // reading from standard input and writing to standard output
   public static void transform() {
-    String s = "";
-    while (!BinaryStdIn.isEmpty()) {
-      s = BinaryStdIn.readString();
-    }
+    String s = BinaryStdIn.readString();
 
     int stringLength = s.length();
     CircularSuffixArray circularSuffixArray = new CircularSuffixArray(s);

@@ -1,65 +1,42 @@
 import java.util.Arrays;
+import java.util.Comparator;
 
 public class CircularSuffixArray {
 
-
-  private final String s;
-  private final CircularSuffix[] circularSuffixes;
-
-  private static class CircularSuffix implements Comparable<CircularSuffix> {
-    private final String s;
-    private final int position;
-
-    public CircularSuffix(String s, int position) {
-      this.s = s;
-      this.position = position;
-    }
-
-    public char charAt(int index) {
-      return s.charAt((position + index) % s.length());
-    }
-
-    @Override
-    public int compareTo(CircularSuffix that) {
-      if (this == that) {
-        return 0;
-      } else {
-        for (int i = 0; i < s.length(); i++) {
-          if (this.charAt(i) < that.charAt(i)) {
-            return -1;
-          } else if (this.charAt(i) > that.charAt(i)) {
-            return 1;
-          }
-        }
-      }
-      return 0;
-    }
-  }
+  private final Integer[] indexList;
 
   // circular suffix array of s
   public CircularSuffixArray(String s) {
-    if (s == null) throw new IllegalArgumentException();
+    if (s == null) throw new IllegalArgumentException("arg can not be null");
 
-    this.s = s;
-    this.circularSuffixes = new CircularSuffix[s.length()];
-
+    indexList = new Integer[s.length()];
     for (int i = 0; i < s.length(); i++) {
-      CircularSuffix circularSuffix = new CircularSuffix(s, i);
-      circularSuffixes[i] = circularSuffix;
+      indexList[i] = i;
     }
+    Comparator<Integer> cmp = (a1, a2) -> {
+      for (int i = 0; i < s.length(); i++) {
+        int i1 = (a1 + i) % s.length();
+        int i2 = (a2 + i) % s.length();
+        if (s.charAt(i1) == s.charAt(i2))
+          continue;
+        else
+          return Character.compare(s.charAt(i1), s.charAt(i2));
+      }
+      return 0;
+    };
 
-    Arrays.sort(circularSuffixes);
+    Arrays.sort(indexList, cmp);
   }
 
   // length of s
   public int length() {
-    return this.s.length();
+    return this.indexList.length;
   }
 
   // returns index of ith sorted suffix
   public int index(int i) {
     if (i < 0 || i > this.length() - 1) throw new IllegalArgumentException();
-    return circularSuffixes[i].position;
+    return indexList[i];
   }
 
   // unit testing (required)

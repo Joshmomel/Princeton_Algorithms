@@ -5,11 +5,14 @@ import java.util.NoSuchElementException;
 
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
-  private Item[] queue = (Item[]) new Object[1];
-  private int n = 0;
+  private static final int INIT_CAPACITY = 1;
+  private Item[] queue;
+  private int n;
 
   // construct an empty randomized queue
   public RandomizedQueue() {
+    queue = (Item[]) new Object[INIT_CAPACITY];
+    n = 0;
   }
 
   private void resize(int max) {
@@ -48,7 +51,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     if (n < queue.length / 4) {
       resize(queue.length / 2);
     }
-    int index = StdRandom.uniform(queue.length);
+    int index = StdRandom.uniformInt(n);
     Item item = queue[index];
     queue[index] = queue[n - 1];
     queue[n - 1] = null;
@@ -61,7 +64,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     if (isEmpty()) {
       throw new NoSuchElementException();
     }
-    return queue[StdRandom.uniform(n)];
+    return queue[StdRandom.uniformInt(n)];
   }
 
   // return an independent iterator over items in random order
@@ -71,11 +74,18 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
   private class RandomizedQueueIterator implements Iterator<Item> {
 
-    private int index = 0;
+    private final Item[] copyQueue;
+    private int copySize;
+
+    public RandomizedQueueIterator() {
+      copyQueue = (Item[]) new Object[n];
+      System.arraycopy(queue, 0, copyQueue, 0, n);
+      copySize = n;
+    }
 
     @Override
     public boolean hasNext() {
-      return index < n;
+      return copySize > 0;
     }
 
     @Override
@@ -83,8 +93,12 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
       if (!hasNext()) {
         throw new NoSuchElementException();
       }
-      Item item = sample();
-      index += 1;
+
+      int index = StdRandom.uniformInt(copySize);
+      Item item = copyQueue[index];
+      copyQueue[index] = copyQueue[copySize - 1];
+      copyQueue[n - 1] = null;
+      copySize -= 1;
       return item;
     }
 
@@ -103,9 +117,16 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     q.enqueue(3);
     q.enqueue(4);
     q.enqueue(5);
-//    q.dequeue();
-//    q.dequeue();
-//    q.dequeue();
+    q.dequeue();
+    q.dequeue();
+    q.dequeue();
+    Integer dequeue = q.dequeue();
+    Integer dequeue1 = q.dequeue();
+    System.out.println(dequeue);
+    System.out.println(dequeue1);
+
+    System.out.println(StdRandom.uniformInt(1));
+
 
     for (Integer item : q) {
       System.out.println(item);

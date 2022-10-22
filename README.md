@@ -10,5 +10,6 @@
 6. [wordnet](https://github.com/Joshmomel/Princeton_Algorithms/tree/wordnet) 100% pass
 7. [seam](https://github.com/Joshmomel/Princeton_Algorithms/tree/seam) 100% pass
 8. [baseball](https://github.com/Joshmomel/Princeton_Algorithms/tree/baseball) 100% pass
-9. [burrows](https://github.com/Joshmomel/Princeton_Algorithms/tree/burrows) 100% pass
+9. [boggle](https://github.com/Joshmomel/Princeton_Algorithms/tree/boggle) 100% pass
+10. [burrows](https://github.com/Joshmomel/Princeton_Algorithms/tree/burrows) 100% pass
 
